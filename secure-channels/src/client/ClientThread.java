@@ -14,12 +14,14 @@ public class ClientThread extends Thread {
 
     private static BigInteger p;
 	private static BigInteger g;
-    private BigInteger x = getRandomBigInteger();
-	private static BigInteger y;
+    private BigInteger x;
+	private static BigInteger yInter;
+    private static BigInteger yExter;
 	private static BigInteger z;
 
     public ClientThread(Socket pSocket) {
         this.socket = pSocket;
+        this.x = getRandomBigInteger();
     }
 
     private BigInteger getRandomBigInteger() {
@@ -32,14 +34,14 @@ public class ClientThread extends Thread {
     }
 
     public void diffieHellmanY(BigInteger xRand) {
-        y = g.modPow(xRand, p);
+        yInter = g.modPow(xRand, p);
 	}
 
     private void diffieHellmanZ(BigInteger yNew, BigInteger xRand) {
         z = g.modPow(yNew, p);
 	}
 
-    public static void process(BufferedReader stdIn, BufferedReader pIn, PrintWriter pOut) throws IOException {
+    public void process(BufferedReader stdIn, BufferedReader pIn, PrintWriter pOut) throws IOException {
         // reads the keyboard
         System.out.println("Escriba el mensaje para enviar: ");
         String fromUser = stdIn.readLine();
@@ -61,10 +63,16 @@ public class ClientThread extends Thread {
             p = new BigInteger(fromSever);
             System.out.println("p: " + p);
         }
-        // gets g2x: ¿?¿?¿?¿?
-        // if ((fromSever = pIn.readLine()) != null) {
-        //     System.out.println("Servidor: " + fromSever);
-        // }
+
+        diffieHellmanY(this.x);
+        pOut.println(yInter.toString());
+
+        // gets g2x aka y:
+        if ((fromSever = pIn.readLine()) != null) {
+            //System.out.println("Servidor: " + fromSever);
+            yExter = new BigInteger(fromSever);
+            System.out.println("y: " + yExter);
+        }
     }
 
     public void run() {
