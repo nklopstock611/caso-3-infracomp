@@ -4,29 +4,58 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.math.BigInteger;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.stream.Stream;
 
 public class Client {
 
+    private static BigInteger p;
+	private static BigInteger g;
+	private Integer pInt;
+	private Integer gInt;
+	private BigInteger y;
+	private BigInteger z;
+
     private static int PUERTO = 4030;
     private static String SERVIDOR = "localhost";
+
+    public BigInteger diffieHellmanY(BigInteger xRand) {
+		// cálculo de y
+		Integer xInt = xRand.intValue();
+		int yInt = (int) Math.pow(this.gInt, xInt) % this.pInt;
+		this.y = BigInteger.valueOf(yInt);
+		return this.y;
+	}
 
     public static void procesar(BufferedReader stdIn, BufferedReader pIn, PrintWriter pOut) throws IOException {
         // Lee del teclado
         System.out.println("Escriba el mensaje para enviar: ");
         String fromUser = stdIn.readLine();
 
-        // Envía el mensaje al servidor
+        // sends to server
         pOut.println(fromUser);
 
         String fromSever = "";
 
-        // Lee la respuesta del servidor
-        // Si lo que llega del servidor no es null observe la asignación luego la condición
+        // reads the answer from the server
+        // g:
         if ((fromSever = pIn.readLine()) != null) {
-            System.out.println("Servidor: " + fromSever);
+            //System.out.println("Servidor: " + fromSever);
+            g = new BigInteger(fromSever);
+            System.out.println("g: " + g);
         }
+        // p:
+        if ((fromSever = pIn.readLine()) != null) {
+            //System.out.println("Servidor: " + fromSever);
+            p = new BigInteger(fromSever);
+            System.out.println("p: " + p);
+        }
+        // g2x: ¿?¿?¿?¿?
+        // if ((fromSever = pIn.readLine()) != null) {
+        //     System.out.println("Servidor: " + fromSever);
+        // }
     }
 
     public static void main(String[] args) {
