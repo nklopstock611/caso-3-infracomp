@@ -62,9 +62,9 @@ public class ClientThread extends Thread {
             System.out.println("p: " + p);
         }
         // gets g2x: ¿?¿?¿?¿?
-        // if ((fromSever = pIn.readLine()) != null) {
-        //     System.out.println("Servidor: " + fromSever);
-        // }
+         if ((fromSever = pIn.readLine()) != null) {
+             System.out.println("G^x: " + fromSever);
+         }
     }
 
     public void run() {
