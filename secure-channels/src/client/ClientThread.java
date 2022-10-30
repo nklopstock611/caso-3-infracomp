@@ -6,7 +6,11 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.math.BigInteger;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
+import java.security.PublicKey;
 import java.security.SecureRandom;
+
+import server.SecurityFunctions;
 
 public class ClientThread extends Thread {
     
@@ -43,15 +47,36 @@ public class ClientThread extends Thread {
         z = yNew.modPow(xRand, p);
 	}
 
+    /**
+     * function copied from ServerThread.
+     * transforms String into byte[].
+     * 
+     * @param ss
+     * @return
+     */
+    public byte[] str2byte(String ss)
+	{	
+		// Encapsulamiento con hexadecimales
+		byte[] ret = new byte[ss.length() / 2];
+		for (int i = 0; i < ret.length; i++) {
+			ret[i] = (byte) Integer.parseInt(ss.substring(i * 2, (i + 1) * 2), 16);
+		}
+		return ret;
+	}
+
     public void process(BufferedReader stdIn, BufferedReader pIn, PrintWriter pOut) throws IOException {
-        // reads the keyboard
+        SecurityFunctions f = new SecurityFunctions();
+        String dlg = "public key - client: ";
+        PublicKey publicKey = f.read_kplus("lib/datos_asim_srv.pub", dlg);
+                
+        // 1. client sends "SECURE INIT"
         System.out.println("Escriba el mensaje para enviar: ");
         String fromUser = stdIn.readLine();
         pOut.println(fromUser);
         
         String fromServer = "";
         
-        // reads the answer from the server
+        // 2. gets g, p and y from server
 
         // gets g:
         if ((fromServer = pIn.readLine()) != null) {
@@ -60,6 +85,7 @@ public class ClientThread extends Thread {
             serverFirm = serverFirm + fromServer + ",";
             System.out.println("g: " + g);
         }
+
         // gets p:
         if ((fromServer = pIn.readLine()) != null) {
             //System.out.println("Servidor: " + fromSever);
@@ -76,14 +102,19 @@ public class ClientThread extends Thread {
             System.out.println("yExter: " + yExter);
         }
 
-        // gets firm (authentication) :: we have to transform it with the public key and then evaluate
+        // gets firm (authentication)
         if ((fromServer = pIn.readLine()) != null) {
             // System.out.println("Servidor: " + fromServer);
             String state = "ERROR";
-            System.out.println("firm: " + fromServer);
-            System.out.println("serverFirm: " + serverFirm);
-            if (fromServer.equals(serverFirm)) {
-                state = "OK";
+            byte[] byte_authentication = str2byte(fromServer);
+            System.out.println("bytes: " + byte_authentication);
+            System.out.println("fromServer: " + fromServer.getBytes(StandardCharsets.UTF_8));
+            try {
+                if (f.checkSignature(publicKey, byte_authentication, fromServer)) { // ¿?¿?¿?¿?
+                    state = "OK";
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
             System.out.println(state);
             pOut.println(state);
