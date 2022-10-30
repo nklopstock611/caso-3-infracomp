@@ -64,17 +64,6 @@ public class ClientThread extends Thread {
 		return ret;
 	}
 
-    public String byte2str( byte[] b )
-	{	
-		// Encapsulamiento con hexadecimales
-		String ret = "";
-		for (int i = 0 ; i < b.length ; i++) {
-			String g = Integer.toHexString(((char)b[i])&0x00ff);
-			ret += (g.length()==1?"0":"") + g;
-		}
-		return ret;
-	}
-
     public void process(BufferedReader stdIn, BufferedReader pIn, PrintWriter pOut) throws IOException {
         SecurityFunctions f = new SecurityFunctions();
         String dlg = "public key - client: ";
