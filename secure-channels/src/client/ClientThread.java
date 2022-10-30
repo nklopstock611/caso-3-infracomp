@@ -64,6 +64,17 @@ public class ClientThread extends Thread {
 		return ret;
 	}
 
+    public String byte2str( byte[] b )
+	{	
+		// Encapsulamiento con hexadecimales
+		String ret = "";
+		for (int i = 0 ; i < b.length ; i++) {
+			String g = Integer.toHexString(((char)b[i])&0x00ff);
+			ret += (g.length()==1?"0":"") + g;
+		}
+		return ret;
+	}
+
     public void process(BufferedReader stdIn, BufferedReader pIn, PrintWriter pOut) throws IOException {
         SecurityFunctions f = new SecurityFunctions();
         String dlg = "public key - client: ";
@@ -107,10 +118,8 @@ public class ClientThread extends Thread {
             // System.out.println("Servidor: " + fromServer);
             String state = "ERROR";
             byte[] byte_authentication = str2byte(fromServer);
-            System.out.println("bytes: " + byte_authentication);
-            System.out.println("fromServer: " + fromServer.getBytes(StandardCharsets.UTF_8));
-            try {
-                if (f.checkSignature(publicKey, byte_authentication, fromServer)) { // ¿?¿?¿?¿?
+            try { // checks if the string "g,p,g2x" is the signature
+                if (f.checkSignature(publicKey, byte_authentication, serverFirm)) {
                     state = "OK";
                 }
             } catch (Exception e) {
