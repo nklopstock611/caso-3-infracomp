@@ -19,6 +19,8 @@ public class ClientThread extends Thread {
     private static BigInteger yExter;
 	private static BigInteger z;
 
+    private static String serverFirm = "";
+
     public ClientThread(Socket pSocket) {
         this.socket = pSocket;
         this.x = getRandomBigInteger();
@@ -38,7 +40,7 @@ public class ClientThread extends Thread {
 	}
 
     private void diffieHellmanZ(BigInteger yNew, BigInteger xRand) {
-        z = g.modPow(yNew, p);
+        z = yNew.modPow(xRand, p);
 	}
 
     public void process(BufferedReader stdIn, BufferedReader pIn, PrintWriter pOut) throws IOException {
@@ -47,32 +49,57 @@ public class ClientThread extends Thread {
         String fromUser = stdIn.readLine();
         pOut.println(fromUser);
         
-        String fromSever = "";
+        String fromServer = "";
         
         // reads the answer from the server
 
         // gets g:
-        if ((fromSever = pIn.readLine()) != null) {
+        if ((fromServer = pIn.readLine()) != null) {
             //System.out.println("Servidor: " + fromSever);
-            g = new BigInteger(fromSever);
+            g = new BigInteger(fromServer);
+            serverFirm = serverFirm + fromServer + ",";
             System.out.println("g: " + g);
         }
         // gets p:
-        if ((fromSever = pIn.readLine()) != null) {
+        if ((fromServer = pIn.readLine()) != null) {
             //System.out.println("Servidor: " + fromSever);
-            p = new BigInteger(fromSever);
+            p = new BigInteger(fromServer);
+            serverFirm = serverFirm + fromServer + ",";
             System.out.println("p: " + p);
         }
 
-        diffieHellmanY(this.x);
-        pOut.println(yInter.toString());
-
-        // gets g2x aka y:
-        if ((fromSever = pIn.readLine()) != null) {
+        // gets g2x aka yExter:
+        if ((fromServer = pIn.readLine()) != null) {
             //System.out.println("Servidor: " + fromSever);
-            yExter = new BigInteger(fromSever);
-            System.out.println("y: " + yExter);
+            yExter = new BigInteger(fromServer);
+            serverFirm = serverFirm + fromServer;
+            System.out.println("yExter: " + yExter);
         }
+
+        // gets firm (authentication) :: we have to transform it with the public key and then evaluate
+        if ((fromServer = pIn.readLine()) != null) {
+            // System.out.println("Servidor: " + fromServer);
+            String state = "ERROR";
+            System.out.println("firm: " + fromServer);
+            System.out.println("serverFirm: " + serverFirm);
+            if (fromServer.equals(serverFirm)) {
+                state = "OK";
+            }
+            System.out.println(state);
+            pOut.println(state);
+        }
+
+        diffieHellmanY(this.x);
+        System.out.println("yInter: " + yInter);
+        pOut.println(yInter.toString());
+        System.out.println("yInter sent...");
+
+        diffieHellmanZ(yExter, this.x);
+        System.out.println("z: " + z);
+
+        // generate symmetric key for to encrypt
+        // generate HMAC symmetric key
+
     }
 
     public void run() {
@@ -88,6 +115,8 @@ public class ClientThread extends Thread {
 
         try {
             process(stdIn, reader, writer);
+
+            System.out.println("closing everything...");
 
             stdIn.close();
             writer.close();

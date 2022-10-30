@@ -7,6 +7,7 @@ public class ClientMain {
 
     private static int PUERTO = 4030;
     private static String SERVIDOR = "localhost";
+    private static Integer idThread = 0;
 
     public static void main(String[] args) {
         Socket socket = null;
@@ -20,8 +21,8 @@ public class ClientMain {
             System.exit(-1);
         }
 
-        // Crea un flujo para leer lo que escribe el cliente por el teclado
         ClientThread client = new ClientThread(socket);
+        idThread++;
         client.start();
     }
 }
