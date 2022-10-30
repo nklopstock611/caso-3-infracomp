@@ -48,8 +48,8 @@ public class ClientThread extends Thread {
 	}
 
     /**
-     * function copied from ServerThread.
-     * transforms String into byte[].
+     * Function copied from ServerThread.
+     * Transforms String into byte[].
      * 
      * @param ss
      * @return
@@ -66,7 +66,7 @@ public class ClientThread extends Thread {
 
     public void process(BufferedReader stdIn, BufferedReader pIn, PrintWriter pOut) throws IOException {
         SecurityFunctions f = new SecurityFunctions();
-        String dlg = "public key - client: ";
+        String dlg = "public key-client: ";
         PublicKey publicKey = f.read_kplus("lib/datos_asim_srv.pub", dlg);
                 
         // 1. client sends "SECURE INIT"
@@ -76,7 +76,7 @@ public class ClientThread extends Thread {
         
         String fromServer = "";
         
-        // 2. gets g, p and y from server
+        // 3. gets g, p, y and the signature from server
 
         // gets g:
         if ((fromServer = pIn.readLine()) != null) {
@@ -102,32 +102,44 @@ public class ClientThread extends Thread {
             System.out.println("yExter: " + yExter);
         }
 
-        // gets firm (authentication)
+        // gets signature (authentication)
         if ((fromServer = pIn.readLine()) != null) {
             // System.out.println("Servidor: " + fromServer);
             String state = "ERROR";
             byte[] byte_authentication = str2byte(fromServer);
-            try { // checks if the string "g,p,g2x" is the signature
-                if (f.checkSignature(publicKey, byte_authentication, serverFirm)) {
+        // 4. verifies if the string "g,p,g2x" is the signature
+            try {
+                Boolean authentication = f.checkSignature(publicKey, byte_authentication, serverFirm);
+                if (authentication) {
                     state = "OK";
                 }
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            System.out.println(state);
+        // 5. sends "OK" or "ERROR"
             pOut.println(state);
         }
 
         diffieHellmanY(this.x);
         System.out.println("yInter: " + yInter);
+        // 6. sends yInter
         pOut.println(yInter.toString());
         System.out.println("yInter sent...");
 
+        // 7. generate z, symmetric key for encrypt, HMAC symmetric key
+        //    and iv1
         diffieHellmanZ(yExter, this.x);
         System.out.println("z: " + z);
 
-        // generate symmetric key for to encrypt
-        // generate HMAC symmetric key
+        // 8. send message with the generated keys and iv1
+
+        // 10. get "OK" or "ERROR"
+
+        // 11. gets decrypted message
+
+        // 12. verifies the decrypted message
+
+        // 13. sends "OK" or "ERROR"
 
     }
 
