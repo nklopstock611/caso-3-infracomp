@@ -32,6 +32,8 @@ public class ClientThread extends Thread {
     private static SecretKey K_AB2 = null;
     private static IvParameterSpec iv1 = null;
 
+    private static SecretKey K_AB1_2 = null;
+    private static SecretKey K_AB2_2 = null;
     private static byte[] decryptedMessage = null;
     private static byte[] newHmacMessage = null;
     private static byte[] iv2 = null;
@@ -182,16 +184,20 @@ public class ClientThread extends Thread {
         // 10. get "OK" or "ERROR"
         if ((fromServer = pIn.readLine()) != null) {
             if (fromServer.equals("OK")) {
-                System.out.println(dlg + "Finishing test: passed.");
+                System.out.println(dlg + "Message recieved.");
             } else {
-                System.out.println(dlg + "Finishing test: failed.");
+                System.out.println(dlg + "Nothing recieved.");
             }
         }
 
         // 11. gets decrypted message
+        // String zStr = String.valueOf(z.toString());
+        // zStr = zStr + "1";
+        
         if ((fromServer = pIn.readLine()) != null) {
             byte[] newMessageBytes = str2byte(fromServer);
             try {
+                //K_AB1_2 = f.csk1(zStr);
                 decryptedMessage = f.sdec(newMessageBytes, K_AB1, iv1);
             } catch (Exception e) {
                 e.printStackTrace();
@@ -201,6 +207,7 @@ public class ClientThread extends Thread {
         if ((fromServer = pIn.readLine()) != null) {
             byte[] newMessageBytes = str2byte(fromServer);
             try {
+                //K_AB2_2 = f.csk2(zStr);
                 newHmacMessage = f.hmac(newMessageBytes, K_AB2);
             } catch (Exception e) {
                 e.printStackTrace();
@@ -221,7 +228,7 @@ public class ClientThread extends Thread {
         // String decryptesMessageStr = byte2str(decryptedMessage);
         // String state = "ERROR";
         // if (decryptesMessageStr.equals(messagePlusOne)) {
-        //     System.out.println("Succes!");
+        //     System.out.println("Success!");
         //     state = "OK";
         // }
         // else {
