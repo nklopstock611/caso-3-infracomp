@@ -272,7 +272,10 @@ public class ServerThread extends Thread{
 	        	int valor = Integer.parseInt(str_original) + 1;
 	    		System.out.println(dlg + "Query answer:" + valor);
 	        	String str_valor = Integer.toString(valor);
-	        	byte[] byte_valor = str_valor.getBytes();
+				System.out.println("OG: " + str_valor);
+	        	//byte[] byte_valor = str_valor.getBytes();
+				byte[] byte_valor = str2byte(str_valor);
+				System.out.println("bytes-valor: " + byte2str(byte_valor));
 	        	
 				byte[] iv2 = generateIvBytes();
 	        	String str_iv2 = byte2str(iv2);
@@ -281,6 +284,7 @@ public class ServerThread extends Thread{
 	        	byte[] rta_consulta = f.senc(byte_valor, sk_srv,ivSpec2, "Servidor");
 	        	byte [] rta_mac = f.hmac(byte_valor, sk_mac);
 	        	String m1 = byte2str(rta_consulta);
+				System.out.println("m1: " + m1);
 	        	String m2 = byte2str(rta_mac);
 	        	ac.println("OK");
 	        	ac.println(m1);

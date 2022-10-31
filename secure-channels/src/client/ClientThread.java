@@ -32,11 +32,9 @@ public class ClientThread extends Thread {
     private static SecretKey K_AB2 = null;
     private static IvParameterSpec iv1 = null;
 
-    private static SecretKey K_AB1_2 = null;
-    private static SecretKey K_AB2_2 = null;
     private static byte[] decryptedMessage = null;
     private static byte[] newHmacMessage = null;
-    private static byte[] iv2 = null;
+    private static IvParameterSpec iv2 = null;
 
     public ClientThread(Socket pSocket) {
         this.socket = pSocket;
@@ -70,13 +68,13 @@ public class ClientThread extends Thread {
 		return ret;
 	}
 
-    public String byte2str( byte[] b )
+    public String byte2str(byte[] b)
 	{	
 		// Encapsulamiento con hexadecimales
 		String ret = "";
 		for (int i = 0 ; i < b.length ; i++) {
-			String g = Integer.toHexString(((char)b[i])&0x00ff);
-			ret += (g.length()==1?"0":"") + g;
+			String g = Integer.toHexString(((char )b[i]) & 0x00ff);
+			ret += (g.length() == 1 ? "0" : "") + g;
 		}
 		return ret;
 	}
@@ -155,10 +153,11 @@ public class ClientThread extends Thread {
         //    and iv1
         diffieHellmanZ(yExter, this.x);
 
+        byte[] iv1bytes = null;
         try {
             K_AB1 = f.csk1(z.toString());
             K_AB2 = f.csk2(z.toString());
-            byte[] iv1bytes = generateIvBytes();
+            iv1bytes = generateIvBytes();
             iv1 = new IvParameterSpec(iv1bytes);
         } catch (Exception e) {
             e.printStackTrace();
@@ -166,7 +165,7 @@ public class ClientThread extends Thread {
 
         
         // 8. sends encrypted message, hmac and iv1
-        String message = "99";
+        String message = "10";
         byte[] messageBytes = str2byte(message);
 
         try {
@@ -177,7 +176,7 @@ public class ClientThread extends Thread {
             byte[] hmacMessage = f.hmac(messageBytes, K_AB2);
             pOut.println(byte2str(hmacMessage));
 
-            pOut.println(byte2str(iv1.getIV()));
+            pOut.println(byte2str(iv1bytes));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -192,53 +191,55 @@ public class ClientThread extends Thread {
         }
 
         // 11. gets encrypted response message, hmac and iv2
-        // String zStr = String.valueOf(z.toString());
-        // zStr = zStr + "1";
+        byte[] newMessageBytes = null;
+        if ((fromServer = pIn.readLine()) != null) {
+            newMessageBytes = str2byte(fromServer);
+        }
+
+        if ((fromServer = pIn.readLine()) != null) {
+            byte[] newHmacMessageBytes = str2byte(fromServer);
+            try {
+                newHmacMessage = f.hmac(newHmacMessageBytes, K_AB2);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        if ((fromServer = pIn.readLine()) != null) {
+            byte[] iv2bytes = str2byte(fromServer);
+            try {
+                iv2 = new IvParameterSpec(iv2bytes);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        // decrypts the response from the server
+        try {
+            decryptedMessage = f.sdec(newMessageBytes, K_AB1, iv2);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // 12. verifies the decrypted message
+        // must do checkInt before anything else!
+        Integer messageInt = Integer.parseInt(message) + 1;
+        String messagePlusOne = messageInt.toString();
+        String decryptedMessageStr = byte2str(decryptedMessage);
+        System.out.println("decrypted: " + decryptedMessageStr);
+        System.out.println("plus one: " + messagePlusOne);
+        String state = "ERROR";
+        if (decryptedMessageStr.equals(messagePlusOne)) {
+            System.out.println("Success!");
+            state = "OK";
+        }
+        else {
+            System.out.println("Failure...");
+        }
         
-        if ((fromServer = pIn.readLine()) != null) {
-            byte[] newMessageBytes = str2byte(fromServer);
-            try {
-                //K_AB1_2 = f.csk1(zStr);
-                decryptedMessage = f.sdec(newMessageBytes, K_AB1, iv1);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-
-        if ((fromServer = pIn.readLine()) != null) {
-            byte[] newMessageBytes = str2byte(fromServer);
-            try {
-                //K_AB2_2 = f.csk2(zStr);
-                newHmacMessage = f.hmac(newMessageBytes, K_AB2);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-
-        if ((fromServer = pIn.readLine()) != null) {
-            try {
-                iv2 = str2byte(fromServer);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-
-        // // 12. verifies the decrypted message
-        // Integer messageInt = Integer.parseInt(message) + 1;
-        // String messagePlusOne = messageInt.toString();
-        // String decryptesMessageStr = byte2str(decryptedMessage);
-        // String state = "ERROR";
-        // if (decryptesMessageStr.equals(messagePlusOne)) {
-        //     System.out.println("Success!");
-        //     state = "OK";
-        // }
-        // else {
-        //     System.out.println("Failure!");
-        // }
+        // 13. sends "OK" or "ERROR"
+        pOut.println(state);
         
-        // // 13. sends "OK" or "ERROR"
-        // pOut.print(state);
-
     }
 
     public void run() {
