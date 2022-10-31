@@ -10,6 +10,10 @@ import java.nio.charset.StandardCharsets;
 import java.security.PublicKey;
 import java.security.SecureRandom;
 
+import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.IvParameterSpec;
+
 import server.SecurityFunctions;
 
 public class ClientThread extends Thread {
@@ -24,6 +28,13 @@ public class ClientThread extends Thread {
 	private static BigInteger z;
 
     private static String serverFirm = "";
+    private static SecretKey K_AB1 = null;
+    private static SecretKey K_AB2 = null;
+    private static IvParameterSpec iv1 = null;
+
+    private static byte[] decryptedMessage = null;
+    private static byte[] newHmacMessage = null;
+    private static byte[] iv2 = null;
 
     public ClientThread(Socket pSocket) {
         this.socket = pSocket;
@@ -47,13 +58,6 @@ public class ClientThread extends Thread {
         z = yNew.modPow(xRand, p);
 	}
 
-    /**
-     * Function copied from ServerThread.
-     * Transforms String into byte[].
-     * 
-     * @param ss
-     * @return
-     */
     public byte[] str2byte(String ss)
 	{	
 		// Encapsulamiento con hexadecimales
@@ -64,9 +68,26 @@ public class ClientThread extends Thread {
 		return ret;
 	}
 
+    public String byte2str( byte[] b )
+	{	
+		// Encapsulamiento con hexadecimales
+		String ret = "";
+		for (int i = 0 ; i < b.length ; i++) {
+			String g = Integer.toHexString(((char)b[i])&0x00ff);
+			ret += (g.length()==1?"0":"") + g;
+		}
+		return ret;
+	}
+
+    private byte[] generateIvBytes() {
+	    byte[] iv = new byte[16];
+	    new SecureRandom().nextBytes(iv);
+	    return iv;
+	}
+
     public void process(BufferedReader stdIn, BufferedReader pIn, PrintWriter pOut) throws IOException {
         SecurityFunctions f = new SecurityFunctions();
-        String dlg = "public key-client: ";
+        String dlg = "client side: ";
         PublicKey publicKey = f.read_kplus("lib/datos_asim_srv.pub", dlg);
                 
         // 1. client sends "SECURE INIT"
@@ -83,7 +104,7 @@ public class ClientThread extends Thread {
             //System.out.println("Servidor: " + fromSever);
             g = new BigInteger(fromServer);
             serverFirm = serverFirm + fromServer + ",";
-            System.out.println("g: " + g);
+            //System.out.println("g: " + g);
         }
 
         // gets p:
@@ -91,7 +112,7 @@ public class ClientThread extends Thread {
             //System.out.println("Servidor: " + fromSever);
             p = new BigInteger(fromServer);
             serverFirm = serverFirm + fromServer + ",";
-            System.out.println("p: " + p);
+            //System.out.println("p: " + p);
         }
 
         // gets g2x aka yExter:
@@ -99,7 +120,7 @@ public class ClientThread extends Thread {
             //System.out.println("Servidor: " + fromSever);
             yExter = new BigInteger(fromServer);
             serverFirm = serverFirm + fromServer;
-            System.out.println("yExter: " + yExter);
+            //System.out.println("yExter: " + yExter);
         }
 
         // gets signature (authentication)
@@ -121,25 +142,94 @@ public class ClientThread extends Thread {
         }
 
         diffieHellmanY(this.x);
-        System.out.println("yInter: " + yInter);
+        //System.out.println("yInter: " + yInter);
         // 6. sends yInter
         pOut.println(yInter.toString());
-        System.out.println("yInter sent...");
+        //System.out.println("yInter sent...");
 
-        // 7. generate z, symmetric key for encrypt, HMAC symmetric key
+        // 7. generates z, symmetric key for encrypt, HMAC symmetric key
         //    and iv1
         diffieHellmanZ(yExter, this.x);
-        System.out.println("z: " + z);
+        //System.out.println("z: " + z);
 
-        // 8. send message with the generated keys and iv1
+        try {
+            K_AB1 = f.csk1(z.toString());
+            K_AB2 = f.csk2(z.toString());
+            byte[] iv1bytes = generateIvBytes();
+            iv1 = new IvParameterSpec(iv1bytes);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        
+        // 8. send message with encrypted message and iv1
+        String message = "99";
+        byte[] messageBytes = str2byte(message);
+
+        try {
+            byte[] encryptedMessage = f.senc(messageBytes, K_AB1, iv1, "encryption-client");
+            System.out.println("b2s: " + byte2str(encryptedMessage));
+            pOut.println(byte2str(encryptedMessage));
+
+            byte[] hmacMessage = f.hmac(messageBytes, K_AB2);
+            pOut.println(byte2str(hmacMessage));
+
+            pOut.println(byte2str(iv1.getIV()));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         // 10. get "OK" or "ERROR"
+        if ((fromServer = pIn.readLine()) != null) {
+            if (fromServer.equals("OK")) {
+                System.out.println(dlg + "Finishing test: passed.");
+            } else {
+                System.out.println(dlg + "Finishing test: failed.");
+            }
+        }
 
         // 11. gets decrypted message
+        if ((fromServer = pIn.readLine()) != null) {
+            byte[] newMessageBytes = str2byte(fromServer);
+            try {
+                decryptedMessage = f.sdec(newMessageBytes, K_AB1, iv1);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
 
-        // 12. verifies the decrypted message
+        if ((fromServer = pIn.readLine()) != null) {
+            byte[] newMessageBytes = str2byte(fromServer);
+            try {
+                newHmacMessage = f.hmac(newMessageBytes, K_AB2);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
 
-        // 13. sends "OK" or "ERROR"
+        if ((fromServer = pIn.readLine()) != null) {
+            try {
+                iv2 = str2byte(fromServer);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        // // 12. verifies the decrypted message
+        // Integer messageInt = Integer.parseInt(message) + 1;
+        // String messagePlusOne = messageInt.toString();
+        // String decryptesMessageStr = byte2str(decryptedMessage);
+        // String state = "ERROR";
+        // if (decryptesMessageStr.equals(messagePlusOne)) {
+        //     System.out.println("Succes!");
+        //     state = "OK";
+        // }
+        // else {
+        //     System.out.println("Failure!");
+        // }
+        
+        // // 13. sends "OK" or "ERROR"
+        // pOut.print(state);
 
     }
 
