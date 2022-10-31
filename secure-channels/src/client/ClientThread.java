@@ -130,6 +130,7 @@ public class ClientThread extends Thread {
             // System.out.println("Servidor: " + fromServer);
             String state = "ERROR";
             byte[] byte_authentication = str2byte(fromServer);
+
         // 4. verifies if the string "g,p,g2x" is the signature
             try {
                 Boolean authentication = f.checkSignature(publicKey, byte_authentication, serverFirm);
@@ -139,20 +140,20 @@ public class ClientThread extends Thread {
             } catch (Exception e) {
                 e.printStackTrace();
             }
+
         // 5. sends "OK" or "ERROR"
             pOut.println(state);
+
         }
 
         diffieHellmanY(this.x);
-        //System.out.println("yInter: " + yInter);
+
         // 6. sends yInter
         pOut.println(yInter.toString());
-        //System.out.println("yInter sent...");
 
         // 7. generates z, symmetric key for encrypt, HMAC symmetric key
         //    and iv1
         diffieHellmanZ(yExter, this.x);
-        //System.out.println("z: " + z);
 
         try {
             K_AB1 = f.csk1(z.toString());
@@ -164,7 +165,7 @@ public class ClientThread extends Thread {
         }
 
         
-        // 8. send message with encrypted message and iv1
+        // 8. sends encrypted message, hmac and iv1
         String message = "99";
         byte[] messageBytes = str2byte(message);
 
@@ -190,7 +191,7 @@ public class ClientThread extends Thread {
             }
         }
 
-        // 11. gets decrypted message
+        // 11. gets encrypted response message, hmac and iv2
         // String zStr = String.valueOf(z.toString());
         // zStr = zStr + "1";
         
@@ -264,5 +265,4 @@ public class ClientThread extends Thread {
             e.printStackTrace();
         }
     }
-
 }
