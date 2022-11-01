@@ -241,8 +241,6 @@ public class ClientThread extends Thread {
         }
 
         // 12. verifies the decrypted message
-        // must dcheck hmac before anything else!
-
         String decryptedMessageStr = new String(decryptedMessage, StandardCharsets.UTF_8);
         messageInt = messageInt + 1;
         String messagePlusOne = messageInt.toString();
