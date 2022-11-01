@@ -175,7 +175,6 @@ public class ServerThread extends Thread{
 	    		System.out.println("==========> Test 1b: passed (Client sends matching query and MAC).");
 	    		
 	        	String str_original = new String(descifrado, StandardCharsets.UTF_8);
-				//String str_original = byte2str(descifrado);
 	        	int valor = Integer.parseInt(str_original) + 1;
 	    		System.out.println(dlg + "Query answer:" + valor);
 	        	String str_valor = Integer.toString(valor);
@@ -268,14 +267,10 @@ public class ServerThread extends Thread{
 	    		System.out.println("==========> Test 2b: passed (Client sends matching query and MAC).");
 
 	        	String str_original = new String(descifrado, StandardCharsets.UTF_8);
-				//String str_original = byte2str(descifrado);
 	        	int valor = Integer.parseInt(str_original) + 1;
 	    		System.out.println(dlg + "Query answer:" + valor);
 	        	String str_valor = Integer.toString(valor);
-				System.out.println("OG: " + str_valor);
 	        	byte[] byte_valor = str_valor.getBytes();
-				//byte[] byte_valor = str2byte(str_valor);
-				//System.out.println("bytes-valor: " + byte2str(byte_valor));
 	        	
 				byte[] iv2 = generateIvBytes();
 	        	String str_iv2 = byte2str(iv2);
@@ -284,7 +279,6 @@ public class ServerThread extends Thread{
 	        	byte[] rta_consulta = f.senc(byte_valor, sk_srv,ivSpec2, "Servidor");
 	        	byte [] rta_mac = f.hmac(byte_valor, sk_mac);
 	        	String m1 = byte2str(rta_consulta);
-				System.out.println("m1: " + m1);
 	        	String m2 = byte2str(rta_mac);
 	        	ac.println("OK");
 	        	ac.println(m1);

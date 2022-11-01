@@ -40,7 +40,7 @@ public class ClientThread extends Thread {
 
     public ClientThread(Socket pSocket, Integer pId) {
         this.id = pId;
-        ccs = new String("concurrent server " + this.id + ": ");
+        ccs = new String("concurrent client " + this.id + ": ");
         this.socket = pSocket;
         this.x = getRandomBigInteger();
     }
@@ -94,9 +94,9 @@ public class ClientThread extends Thread {
         PublicKey publicKey = f.read_kplus("lib/datos_asim_srv.pub", ccs);
                 
         // 1. client sends "SECURE INIT"
-        System.out.println("Type SECURE INIT: ");
-        String fromUser = stdIn.readLine();
-        pOut.println(fromUser);
+        //System.out.println("Type SECURE INIT: ");
+        //String fromUser = stdIn.readLine();
+        pOut.println("hola");
         
         String fromServer = "";
         
