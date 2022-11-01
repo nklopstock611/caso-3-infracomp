@@ -19,6 +19,8 @@ import server.SecurityFunctions;
 public class ClientThread extends Thread {
     
     private Socket socket = null;
+    private Integer id;
+    private String ccs;
 
     private static BigInteger p;
 	private static BigInteger g;
@@ -36,7 +38,9 @@ public class ClientThread extends Thread {
     private static byte[] newHmacMessage = null;
     private static IvParameterSpec iv2 = null;
 
-    public ClientThread(Socket pSocket) {
+    public ClientThread(Socket pSocket, Integer pId) {
+        this.id = pId;
+        ccs = new String("concurrent server " + this.id + ": ");
         this.socket = pSocket;
         this.x = getRandomBigInteger();
     }
@@ -87,11 +91,10 @@ public class ClientThread extends Thread {
 
     public void process(BufferedReader stdIn, BufferedReader pIn, PrintWriter pOut) throws IOException {
         SecurityFunctions f = new SecurityFunctions();
-        String dlg = "client side: ";
-        PublicKey publicKey = f.read_kplus("lib/datos_asim_srv.pub", dlg);
+        PublicKey publicKey = f.read_kplus("lib/datos_asim_srv.pub", ccs);
                 
         // 1. client sends "SECURE INIT"
-        System.out.println("Escriba el mensaje para enviar: ");
+        System.out.println("Type SECURE INIT: ");
         String fromUser = stdIn.readLine();
         pOut.println(fromUser);
         
@@ -128,20 +131,22 @@ public class ClientThread extends Thread {
             // System.out.println("Servidor: " + fromServer);
             String state = "ERROR";
             byte[] byte_authentication = str2byte(fromServer);
-
-        // 4. verifies if the string "g,p,g2x" is the signature
-            try {
-                Boolean authentication = f.checkSignature(publicKey, byte_authentication, serverFirm);
-                if (authentication) {
-                    state = "OK";
+            // 4. verifies if the string "g,p,g2x" is the signature
+                try {
+                    Boolean authentication = f.checkSignature(publicKey, byte_authentication, serverFirm);
+                    if (authentication) {
+                        state = "OK";
+            // 5. sends "OK" or "ERROR"
+                        pOut.println(state);
+                    }
+                    else {
+            // 5. sends "OK" or "ERROR"
+                        pOut.println(state);
+                        return; // works as a STOP! for the thread
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-        // 5. sends "OK" or "ERROR"
-            pOut.println(state);
-
         }
 
         diffieHellmanY(this.x);
@@ -165,8 +170,9 @@ public class ClientThread extends Thread {
 
         
         // 8. sends encrypted message, hmac and iv1
-        String message = "10";
-        byte[] messageBytes = str2byte(message);
+        Integer messageInt = 99;
+        String str_messageInt = String.valueOf(messageInt);
+        byte[] messageBytes = (str_messageInt).getBytes();
 
         try {
             byte[] encryptedMessage = f.senc(messageBytes, K_AB1, iv1, "encryption-client");
@@ -184,9 +190,10 @@ public class ClientThread extends Thread {
         // 10. get "OK" or "ERROR"
         if ((fromServer = pIn.readLine()) != null) {
             if (fromServer.equals("OK")) {
-                System.out.println(dlg + "Message recieved.");
+                System.out.println(ccs + "Message recieved.");
             } else {
-                System.out.println(dlg + "Nothing recieved.");
+                System.out.println(ccs + "Nothing recieved.");
+                return; // works as a STOP! for the thread
             }
         }
 
@@ -222,24 +229,25 @@ public class ClientThread extends Thread {
         }
 
         // 12. verifies the decrypted message
-        // must do checkInt before anything else!
-        Integer messageInt = Integer.parseInt(message) + 1;
+        // must dcheck hmac before anything else!
+
+        String decryptedMessageStr = new String(decryptedMessage, StandardCharsets.UTF_8);
+        messageInt = messageInt + 1;
         String messagePlusOne = messageInt.toString();
-        String decryptedMessageStr = byte2str(decryptedMessage);
         System.out.println("decrypted: " + decryptedMessageStr);
         System.out.println("plus one: " + messagePlusOne);
         String state = "ERROR";
         if (decryptedMessageStr.equals(messagePlusOne)) {
             System.out.println("Success!");
             state = "OK";
+        // 13. sends "OK" or "ERROR"
+            pOut.println(state);
         }
         else {
             System.out.println("Failure...");
-        }
-        
-        // 13. sends "OK" or "ERROR"
-        pOut.println(state);
-        
+            pOut.println(state);
+            return; // works as a STOP! for the thread
+        }        
     }
 
     public void run() {
