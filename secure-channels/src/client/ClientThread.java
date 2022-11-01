@@ -131,22 +131,22 @@ public class ClientThread extends Thread {
             // System.out.println("Servidor: " + fromServer);
             String state = "ERROR";
             byte[] byte_authentication = str2byte(fromServer);
-            // 4. verifies if the string "g,p,g2x" is the signature
-                try {
-                    Boolean authentication = f.checkSignature(publicKey, byte_authentication, serverFirm);
-                    if (authentication) {
-                        state = "OK";
-            // 5. sends "OK" or "ERROR"
-                        pOut.println(state);
-                    }
-                    else {
-            // 5. sends "OK" or "ERROR"
-                        pOut.println(state);
-                        return; // works as a STOP! for the thread
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
+        // 4. verifies if the string "g,p,g2x" is the signature
+            try {
+                Boolean authentication = f.checkSignature(publicKey, byte_authentication, serverFirm);
+                if (authentication) {
+                    state = "OK";
+        // 5. sends "OK" or "ERROR"
+                    pOut.println(state);
                 }
+                else {
+        // 5. sends "OK" or "ERROR"
+                    pOut.println(state);
+                    return; // works as a STOP! for the thread
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
 
         diffieHellmanY(this.x);
@@ -203,10 +203,11 @@ public class ClientThread extends Thread {
             newMessageBytes = str2byte(fromServer);
         }
 
+        byte[] newHmacMessageBytes = null;
         if ((fromServer = pIn.readLine()) != null) {
-            byte[] newHmacMessageBytes = str2byte(fromServer);
+            newHmacMessageBytes = str2byte(fromServer);
             try {
-                newHmacMessage = f.hmac(newHmacMessageBytes, K_AB2);
+                //newHmacMessage = f.hmac(newMessageBytes, K_AB2);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -220,6 +221,17 @@ public class ClientThread extends Thread {
                 e.printStackTrace();
             }
         }
+
+        // validates hmac
+        // try {
+        //     Boolean validHMAC = f.checkInt(newMessageBytes, K_AB2, newHmacMessageBytes);
+        //     System.out.println("Integrity check: " + validHMAC);
+        //     if (validHMAC == false) {
+        //         return;
+        //     }
+        // } catch (Exception e1) {
+        //     e1.printStackTrace();
+        // }
 
         // decrypts the response from the server
         try {
