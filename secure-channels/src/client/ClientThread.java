@@ -222,22 +222,22 @@ public class ClientThread extends Thread {
             }
         }
 
-        // validates hmac
-        // try {
-        //     Boolean validHMAC = f.checkInt(newMessageBytes, K_AB2, newHmacMessageBytes);
-        //     System.out.println("Integrity check: " + validHMAC);
-        //     if (validHMAC == false) {
-        //         return;
-        //     }
-        // } catch (Exception e1) {
-        //     e1.printStackTrace();
-        // }
-
         // decrypts the response from the server
         try {
             decryptedMessage = f.sdec(newMessageBytes, K_AB1, iv2);
         } catch (Exception e) {
             e.printStackTrace();
+        }
+
+        // validates hmac
+        try {
+            Boolean validHMAC = f.checkInt(decryptedMessage, K_AB2, newHmacMessageBytes);
+            System.out.println("Integrity check: " + validHMAC);
+            if (validHMAC == false) {
+                return;
+            }
+        } catch (Exception e1) {
+            e1.printStackTrace();
         }
 
         // 12. verifies the decrypted message
