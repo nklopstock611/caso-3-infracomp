@@ -22,17 +22,16 @@ public class ClientMain {
         N = sc.nextInt();
         sc.close();
 
-        try {
-            socket = new Socket(SERVIDOR, PUERTO);
-        } catch (IOException e) {
-            e.printStackTrace();
-            System.exit(-1);
-        }
-
         for (int i = 0; i < N; i++) {
+            try {
+                socket = new Socket(SERVIDOR, PUERTO);
+            } catch (IOException e) {
+                e.printStackTrace();
+                System.exit(-1);
+            }
             ClientThread client = new ClientThread(socket, idThread);
-            client.start();
             idThread++;
+            client.start();
         }
     }
 }

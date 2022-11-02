@@ -22,27 +22,37 @@ public class ClientThread extends Thread {
     private Integer id;
     private String ccs;
 
-    private static BigInteger p;
-	private static BigInteger g;
-    private BigInteger x;
-	private static BigInteger yInter;
-    private static BigInteger yExter;
-	private static BigInteger z;
+    private PrintWriter writer = null;
+    private BufferedReader reader = null;
+    private BufferedReader stdIn = null;
 
-    private static String serverFirm = "";
-    private static SecretKey K_AB1 = null;
-    private static SecretKey K_AB2 = null;
-    private static IvParameterSpec iv1 = null;
+    private BigInteger p;
+	private BigInteger g;
+    private BigInteger x;
+	private BigInteger yInter;
+    private BigInteger yExter;
+	private BigInteger z;
+
+    private String serverFirm = "";
+    private SecretKey K_AB1 = null;
+    private SecretKey K_AB2 = null;
+    private IvParameterSpec iv1 = null;
 
     private static byte[] decryptedMessage = null;
-    private static byte[] newHmacMessage = null;
     private static IvParameterSpec iv2 = null;
 
     public ClientThread(Socket pSocket, Integer pId) {
-        this.id = pId;
-        ccs = new String("concurrent client " + this.id + ": ");
+        id = pId;
+        ccs = new String("concurrent client " + id + ": ");
         this.socket = pSocket;
         this.x = getRandomBigInteger();
+        try {
+            writer = new PrintWriter(socket.getOutputStream(), true);
+            reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        } catch (IOException e1) {
+            e1.printStackTrace();
+        }
+        stdIn = new BufferedReader(new InputStreamReader(System.in));
     }
 
     private BigInteger getRandomBigInteger() {
@@ -94,9 +104,9 @@ public class ClientThread extends Thread {
         PublicKey publicKey = f.read_kplus("lib/datos_asim_srv.pub", ccs);
                 
         // 1. client sends "SECURE INIT"
-        //System.out.println("Type SECURE INIT: ");
+        //System.out.println(ccs + "Type SECURE INIT: ");
         //String fromUser = stdIn.readLine();
-        pOut.println("hola");
+        pOut.println("SECURE INIT");
         
         String fromServer = "";
         
@@ -104,31 +114,31 @@ public class ClientThread extends Thread {
 
         // gets g:
         if ((fromServer = pIn.readLine()) != null) {
-            //System.out.println("Servidor: " + fromSever);
+            //System.out.println(ccs + "Servidor: " + fromSever);
             g = new BigInteger(fromServer);
             serverFirm = serverFirm + fromServer + ",";
-            //System.out.println("g: " + g);
+            //System.out.println(ccs + "g: " + g);
         }
 
         // gets p:
         if ((fromServer = pIn.readLine()) != null) {
-            //System.out.println("Servidor: " + fromSever);
+            //System.out.println(ccs + "Servidor: " + fromSever);
             p = new BigInteger(fromServer);
             serverFirm = serverFirm + fromServer + ",";
-            //System.out.println("p: " + p);
+            //System.out.println(ccs + "p: " + p);
         }
 
         // gets g2x aka yExter:
         if ((fromServer = pIn.readLine()) != null) {
-            //System.out.println("Servidor: " + fromSever);
+            //System.out.println(ccs + "Servidor: " + fromSever);
             yExter = new BigInteger(fromServer);
             serverFirm = serverFirm + fromServer;
-            //System.out.println("yExter: " + yExter);
+            //System.out.println(ccs + "yExter: " + yExter);
         }
 
         // gets signature (authentication)
         if ((fromServer = pIn.readLine()) != null) {
-            // System.out.println("Servidor: " + fromServer);
+            // System.out.println(ccs + "Servidor: " + fromServer);
             String state = "ERROR";
             byte[] byte_authentication = str2byte(fromServer);
         // 4. verifies if the string "g,p,g2x" is the signature
@@ -176,7 +186,7 @@ public class ClientThread extends Thread {
 
         try {
             byte[] encryptedMessage = f.senc(messageBytes, K_AB1, iv1, "encryption-client");
-            System.out.println("b2s: " + byte2str(encryptedMessage));
+            System.out.println(ccs + "b2s: " + byte2str(encryptedMessage));
             pOut.println(byte2str(encryptedMessage));
 
             byte[] hmacMessage = f.hmac(messageBytes, K_AB2);
@@ -206,11 +216,6 @@ public class ClientThread extends Thread {
         byte[] newHmacMessageBytes = null;
         if ((fromServer = pIn.readLine()) != null) {
             newHmacMessageBytes = str2byte(fromServer);
-            try {
-                //newHmacMessage = f.hmac(newMessageBytes, K_AB2);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
         }
 
         if ((fromServer = pIn.readLine()) != null) {
@@ -232,8 +237,9 @@ public class ClientThread extends Thread {
         // validates hmac
         try {
             Boolean validHMAC = f.checkInt(decryptedMessage, K_AB2, newHmacMessageBytes);
-            System.out.println("Integrity check: " + validHMAC);
+            System.out.println(ccs + "Integrity check: " + validHMAC);
             if (validHMAC == false) {
+                pOut.println("ERROR");
                 return;
             }
         } catch (Exception e1) {
@@ -244,37 +250,27 @@ public class ClientThread extends Thread {
         String decryptedMessageStr = new String(decryptedMessage, StandardCharsets.UTF_8);
         messageInt = messageInt + 1;
         String messagePlusOne = messageInt.toString();
-        System.out.println("decrypted: " + decryptedMessageStr);
-        System.out.println("plus one: " + messagePlusOne);
+        System.out.println(ccs + "decrypted: " + decryptedMessageStr);
+        System.out.println(ccs + "plus one: " + messagePlusOne);
         String state = "ERROR";
         if (decryptedMessageStr.equals(messagePlusOne)) {
-            System.out.println("Success!");
+            System.out.println(ccs + "Success!");
             state = "OK";
         // 13. sends "OK" or "ERROR"
             pOut.println(state);
         }
         else {
-            System.out.println("Failure...");
-            pOut.println(state);
+            System.out.println(ccs + "Failure...");
+            pOut.println("ERROR");
             return; // works as a STOP! for the thread
         }        
     }
 
     public void run() {
-        PrintWriter writer = null;
-        BufferedReader reader = null;
-        try {
-            writer = new PrintWriter(socket.getOutputStream(), true);
-            reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-        } catch (IOException e1) {
-            e1.printStackTrace();
-        }
-        BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
-
         try {
             process(stdIn, reader, writer);
 
-            System.out.println("closing everything...");
+            System.out.println(ccs + "closing everything...");
 
             stdIn.close();
             writer.close();
