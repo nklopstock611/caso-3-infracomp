@@ -9,6 +9,7 @@ import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.security.PublicKey;
 import java.security.SecureRandom;
+import java.util.Random;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
@@ -180,13 +181,14 @@ public class ClientThread extends Thread {
 
         
         // 8. sends encrypted message, hmac and iv1
-        Integer messageInt = 99;
+        Random rand = new Random();
+        Integer messageInt = rand.nextInt((Integer.MAX_VALUE - 1) + 1);
         String str_messageInt = String.valueOf(messageInt);
         byte[] messageBytes = (str_messageInt).getBytes();
 
         try {
             byte[] encryptedMessage = f.senc(messageBytes, K_AB1, iv1, "encryption-client");
-            System.out.println(ccs + "b2s: " + byte2str(encryptedMessage));
+            //System.out.println(ccs + "b2s: " + byte2str(encryptedMessage));
             pOut.println(byte2str(encryptedMessage));
 
             byte[] hmacMessage = f.hmac(messageBytes, K_AB2);
@@ -250,6 +252,7 @@ public class ClientThread extends Thread {
         String decryptedMessageStr = new String(decryptedMessage, StandardCharsets.UTF_8);
         messageInt = messageInt + 1;
         String messagePlusOne = messageInt.toString();
+        System.out.println(ccs + "original: " + str_messageInt);
         System.out.println(ccs + "decrypted: " + decryptedMessageStr);
         System.out.println(ccs + "plus one: " + messagePlusOne);
         String state = "ERROR";

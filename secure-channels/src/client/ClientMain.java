@@ -15,7 +15,7 @@ public class ClientMain {
     public static void main(String[] args) {
         Socket socket = null;
         
-        System.out.println("Cliente...");
+        System.out.println("Client...");
 
         Scanner sc = new Scanner(System.in);
         System.out.println("Enter the number of clients: ");

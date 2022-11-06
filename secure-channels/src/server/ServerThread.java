@@ -50,11 +50,11 @@ public class ServerThread extends Thread{
 	    f = new SecurityFunctions();
 	    
 		if (mod==0) {
-			System.out.println("Running test 0.");
+			System.out.println(dlg + "Running test 0.");
 		} else if (mod==1){
-			System.out.println("Running test 1.");
+			System.out.println(dlg + "Running test 1.");
 		} else if (mod==2) {
-			System.out.println("Running test 2.");
+			System.out.println(dlg + "Running test 2.");
 		}
 
 	    try {
