@@ -195,7 +195,10 @@ public class ClientThread extends Thread {
             //System.out.println(ccs + "b2s: " + byte2str(encryptedMessage));
             pOut.println(byte2str(encryptedMessage));
 
+            long start = System.nanoTime();
             byte[] hmacMessage = f.hmac(messageBytes, K_AB2);
+            long end = System.nanoTime();      
+            System.out.println(" --- Elapsed Time for HMAC generation in nano seconds: "+ (end - start)); 
             pOut.println(byte2str(hmacMessage));
 
             pOut.println(byte2str(iv1bytes));
