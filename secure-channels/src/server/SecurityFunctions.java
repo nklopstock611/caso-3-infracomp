@@ -54,13 +54,17 @@ public class SecurityFunctions {
     
 	public byte[] hmac(byte[] msg, SecretKey key) throws Exception {
 		Mac mac = Mac.getInstance("HMACSHA256");
+		long start = System.nanoTime();
 		mac.init(key);
 		byte[] bytes = mac.doFinal(msg);
+		long end = System.nanoTime();      
+	    System.out.println(" --- Elapsed Time for HMAC generation in nano seconds: "+ (end - start)); 
 		return bytes;
 	}
 
 	public boolean checkInt(byte[] msg, SecretKey key, byte [] hash ) throws Exception
 	{
+		long start = System.nanoTime();
 		byte [] nuevo = hmac(msg, key);
 		if (nuevo.length != hash.length) {
 			return false;
@@ -68,6 +72,8 @@ public class SecurityFunctions {
 		for (int i = 0; i < nuevo.length ; i++) {
 			if (nuevo[i] != hash[i]) return false;
 		}
+		long end = System.nanoTime();      
+	    System.out.println(" --- Elapsed Time for HMAC verification in nano seconds: "+ (end - start)); 
 		return true;
 	}
     
@@ -103,7 +109,7 @@ public class SecurityFunctions {
 		decifrador.init(Cipher.ENCRYPT_MODE, key, iv); 
 		byte[] tmp = decifrador.doFinal(msg);
 	    long end = System.nanoTime();      
-	    System.out.println(id+" --- Elapsed Time for SYM encryption in nano seconds: "+ (end-start));   
+	    System.out.println(id + " --- Elapsed Time for SYM encryption in nano seconds: "+ (end-start));   
 		return tmp;
 	}
 	

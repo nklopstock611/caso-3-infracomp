@@ -65,7 +65,10 @@ public class ClientThread extends Thread {
     }
 
     public void diffieHellmanY(BigInteger xRand) {
+        long start = System.nanoTime();
         yInter = g.modPow(xRand, p);
+        long end = System.nanoTime();      
+	    System.out.println(" --- Elapsed Time for G^y generation in nano seconds: "+ (end - start)); 
 	}
 
     private void diffieHellmanZ(BigInteger yNew, BigInteger xRand) {
