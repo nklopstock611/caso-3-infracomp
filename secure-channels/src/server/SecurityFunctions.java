@@ -67,10 +67,16 @@ public class SecurityFunctions {
 		long end_1 = System.nanoTime();      
 	    long sum = end_1 - start_1;
 		if (nuevo.length != hash.length) {
+			long end = System.nanoTime();      
+	    	System.out.println(" --- Elapsed Time for HMAC verification in nano seconds: " + (sum + (end - start))); 
 			return false;
 		}
 		for (int i = 0; i < nuevo.length ; i++) {
-			if (nuevo[i] != hash[i]) return false;
+			if (nuevo[i] != hash[i]){
+				long end = System.nanoTime();      
+	    		System.out.println(" --- Elapsed Time for HMAC verification in nano seconds: " + (sum + (end - start))); 
+				return false;
+			} 
 		}
 		long end = System.nanoTime();      
 	    System.out.println(" --- Elapsed Time for HMAC verification in nano seconds: " + (sum + (end - start))); 
