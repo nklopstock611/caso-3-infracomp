@@ -11,7 +11,6 @@ import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.util.Random;
 
-import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 
@@ -148,10 +147,12 @@ public class ClientThread extends Thread {
                 if (authentication) {
                     state = "OK";
         // 5. sends "OK" or "ERROR"
+                    System.out.println(ccs + " ==========> Test 1. passed (correct signature)");
                     pOut.println(state);
                 }
                 else {
         // 5. sends "OK" or "ERROR"
+                    System.out.println(ccs + " ==========> Test 1. failed (not the right signature)");
                     pOut.println(state);
                     return; // works as a STOP! for the thread
                 }
@@ -202,9 +203,11 @@ public class ClientThread extends Thread {
         // 10. get "OK" or "ERROR"
         if ((fromServer = pIn.readLine()) != null) {
             if (fromServer.equals("OK")) {
-                System.out.println(ccs + "Message recieved.");
+                //System.out.println(ccs + "Message recieved.");
+                System.out.println(ccs + " ==========> Test 2. passed (String OK recieved)");
             } else {
-                System.out.println(ccs + "Nothing recieved.");
+                //System.out.println(ccs + "Nothing recieved.");
+                System.out.println(ccs + " ==========> Test 2. failed (String ERROR recieved)");
                 return; // works as a STOP! for the thread
             }
         }
@@ -239,8 +242,9 @@ public class ClientThread extends Thread {
         // validates hmac
         try {
             Boolean validHMAC = f.checkInt(decryptedMessage, K_AB2, newHmacMessageBytes);
-            System.out.println(ccs + "Integrity check: " + validHMAC);
+            //System.out.println(ccs + "Integrity check: " + validHMAC);
             if (validHMAC == false) {
+                System.out.println(ccs + " ==========> Test 3. failed (integrity failed)");
                 pOut.println("ERROR");
                 return;
             }
@@ -257,13 +261,15 @@ public class ClientThread extends Thread {
         System.out.println(ccs + "plus one: " + messagePlusOne);
         String state = "ERROR";
         if (decryptedMessageStr.equals(messagePlusOne)) {
-            System.out.println(ccs + "Success!");
+            //System.out.println(ccs + "Success!");
+            System.out.println(ccs + " ==========> Test 4. success!");
             state = "OK";
         // 13. sends "OK" or "ERROR"
             pOut.println(state);
         }
         else {
-            System.out.println(ccs + "Failure...");
+            //System.out.println(ccs + "Failure...");
+            System.out.println(ccs + " ==========> Test 4. failure...");
             pOut.println("ERROR");
             return; // works as a STOP! for the thread
         }        
