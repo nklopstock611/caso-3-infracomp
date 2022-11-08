@@ -34,12 +34,9 @@ public class SecurityFunctions {
     
     public boolean checkSignature(PublicKey publica, byte[] firma, String mensaje) throws Exception {
         Signature publicSignature = Signature.getInstance("SHA256withRSA");
-        long start = System.nanoTime();
-		publicSignature.initVerify(publica);
+        publicSignature.initVerify(publica);
         publicSignature.update(mensaje.getBytes(StandardCharsets.UTF_8));
         boolean isCorrect = publicSignature.verify(firma);
-		long end = System.nanoTime();      
-		System.out.println(" --- Elapsed Time for SIGNATURE verification in nano seconds: " + (end - start)); 
         return isCorrect;
     }
     
