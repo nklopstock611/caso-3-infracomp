@@ -1,0 +1,5 @@
+
+ --- Elapsed Time for SIGNATURE verification in nano seconds: 8766600
+ --- Elapsed Time for SIGNATURE verification in nano seconds: 1212800
+ --- Elapsed Time for SIGNATURE verification in nano seconds: 581900
+ --- Elapsed Time for SIGNATURE verification in nano seconds: 542400
