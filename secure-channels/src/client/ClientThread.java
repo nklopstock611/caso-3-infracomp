@@ -2,6 +2,7 @@ package client;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.FileWriter;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.math.BigInteger;
@@ -64,12 +65,15 @@ public class ClientThread extends Thread {
         return bix;
     }
 
-    public void diffieHellmanY(BigInteger xRand) {
+    public void diffieHellmanY(BigInteger xRand) throws IOException {
+        FileWriter myWriter = new FileWriter("docs/pruebasG.txt",true);
         long start = System.nanoTime();
         yInter = g.modPow(xRand, p);
         long end = System.nanoTime();      
 	    System.out.println(" --- Elapsed Time for G^y generation in nano seconds: "+ (end - start)); 
-	}
+        myWriter.write("\n"+" --- Elapsed Time for G^y generation in nano seconds: "+ (end - start));
+		myWriter.close();
+    }
 
     private void diffieHellmanZ(BigInteger yNew, BigInteger xRand) {
         z = yNew.modPow(xRand, p);
@@ -103,6 +107,7 @@ public class ClientThread extends Thread {
 	}
 
     public void process(BufferedReader stdIn, BufferedReader pIn, PrintWriter pOut) throws IOException {
+        FileWriter myWriter = new FileWriter("docs/pruebasHG.txt",true);
         SecurityFunctions f = new SecurityFunctions();
         PublicKey publicKey = f.read_kplus("lib/datos_asim_srv.pub", ccs);
                 
@@ -199,6 +204,8 @@ public class ClientThread extends Thread {
             byte[] hmacMessage = f.hmac(messageBytes, K_AB2);
             long end = System.nanoTime();      
             System.out.println(" --- Elapsed Time for HMAC generation in nano seconds: "+ (end - start)); 
+            myWriter.write("\n"+" --- Elapsed Time for HMAC generation in nano seconds: "+ (end - start));
+            myWriter.close();
             pOut.println(byte2str(hmacMessage));
 
             pOut.println(byte2str(iv1bytes));

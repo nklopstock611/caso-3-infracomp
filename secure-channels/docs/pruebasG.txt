@@ -1,0 +1,4 @@
+
+ --- Elapsed Time for G^y generation in nano seconds: 1623100
+ --- Elapsed Time for G^y generation in nano seconds: 2878600
+ --- Elapsed Time for G^y generation in nano seconds: 1166500
