@@ -33,11 +33,17 @@ public class SecurityFunctions {
     }
     
     public boolean checkSignature(PublicKey publica, byte[] firma, String mensaje) throws Exception {
-        Signature publicSignature = Signature.getInstance("SHA256withRSA");
+        FileWriter myWriter = new FileWriter("docs/pruebasHV.txt",true);
+		Signature publicSignature = Signature.getInstance("SHA256withRSA");
+		long start = System.nanoTime();
         publicSignature.initVerify(publica);
         publicSignature.update(mensaje.getBytes(StandardCharsets.UTF_8));
         boolean isCorrect = publicSignature.verify(firma);
-        return isCorrect;
+		long end = System.nanoTime();      
+	    	System.out.println(" --- Elapsed Time for SIGNATURE verification in nano seconds: " + (end - start));
+			myWriter.write("\n"+" --- Elapsed Time for SIGNATURE verification in nano seconds: " + (end - start));
+            myWriter.close();
+			return isCorrect;
     }
     
     public byte[] aenc(PublicKey publica, String mensaje) throws Exception {        
@@ -64,33 +70,22 @@ public class SecurityFunctions {
 
 	public boolean checkInt(byte[] msg, SecretKey key, byte [] hash ) throws Exception
 	{
-		FileWriter myWriter = new FileWriter("docs/pruebasHV.txt",true);
+		
 		long start = System.nanoTime();
 		long start_1 = System.nanoTime();
 		byte [] nuevo = hmac(msg, key);
 		long end_1 = System.nanoTime();      
 	    long sum = end_1 - start_1;
 		if (nuevo.length != hash.length) {
-			long end = System.nanoTime();      
-	    	System.out.println(" --- Elapsed Time for HMAC verification in nano seconds: " + (sum + (end - start))); 
-			myWriter.write("\n"+" --- Elapsed Time for HMAC verification in nano seconds: " + (sum + (end - start))+"\n");
-			myWriter.close();
 			return false;
 			
 		}
 		for (int i = 0; i < nuevo.length ; i++) {
 			if (nuevo[i] != hash[i]){
-				long end = System.nanoTime();      
-	    		System.out.println(" --- Elapsed Time for HMAC verification in nano seconds: " + (sum + (end - start))); 
-				myWriter.write("\n"+" --- Elapsed Time for HMAC verification in nano seconds: " + (sum + (end - start))+"\n");
-				myWriter.close();
 				return false;
 			} 
 		}
-		long end = System.nanoTime();      
-	    System.out.println(" --- Elapsed Time for HMAC verification in nano seconds: " + (sum + (end - start))); 
-		myWriter.write("\n"+" --- Elapsed Time for HMAC verification in nano seconds: " + (sum + (end - start))+"\n");
-		myWriter.close();
+
 		return true;
 		
 	}
