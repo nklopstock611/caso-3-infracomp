@@ -1,4 +1,0 @@
-
- --- Elapsed Time for HMAC generation in nano seconds: 1663200
- --- Elapsed Time for HMAC generation in nano seconds: 857200
- --- Elapsed Time for HMAC generation in nano seconds: 1462400
