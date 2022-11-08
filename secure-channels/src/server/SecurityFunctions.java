@@ -67,39 +67,21 @@ public class SecurityFunctions {
 
 	public boolean checkInt(byte[] msg, SecretKey key, byte [] hash ) throws Exception
 	{
-<<<<<<< HEAD
 		
-=======
->>>>>>> 769cb347a5b2e72fad5bdd6526d98374378b68b9
 		long start = System.nanoTime();
 		long start_1 = System.nanoTime();
 		byte [] nuevo = hmac(msg, key);
 		long end_1 = System.nanoTime();      
 	    long sum = end_1 - start_1;
 		if (nuevo.length != hash.length) {
-<<<<<<< HEAD
-=======
-			long end = System.nanoTime();      
-	    	System.out.println(" --- Elapsed Time for HMAC verification in nano seconds: " + (sum + (end - start))); 
->>>>>>> 769cb347a5b2e72fad5bdd6526d98374378b68b9
 			return false;
 		}
 		for (int i = 0; i < nuevo.length ; i++) {
 			if (nuevo[i] != hash[i]){
-<<<<<<< HEAD
 				return false;
 			} 
 		}
 
-=======
-				long end = System.nanoTime();      
-	    		System.out.println(" --- Elapsed Time for HMAC verification in nano seconds: " + (sum + (end - start))); 
-				return false;
-			} 
-		}
-		long end = System.nanoTime();      
-	    System.out.println(" --- Elapsed Time for HMAC verification in nano seconds: " + (sum + (end - start))); 
->>>>>>> 769cb347a5b2e72fad5bdd6526d98374378b68b9
 		return true;
 	}
     
