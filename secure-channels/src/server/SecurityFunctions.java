@@ -1,7 +1,6 @@
 package server;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.FileInputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyFactory;
@@ -17,8 +16,6 @@ import javax.crypto.Mac;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
-
-
 
 public class SecurityFunctions {
 	private String algoritmo_simetrico = "AES/CBC/PKCS5Padding";
@@ -70,24 +67,40 @@ public class SecurityFunctions {
 
 	public boolean checkInt(byte[] msg, SecretKey key, byte [] hash ) throws Exception
 	{
+<<<<<<< HEAD
 		
+=======
+>>>>>>> 769cb347a5b2e72fad5bdd6526d98374378b68b9
 		long start = System.nanoTime();
 		long start_1 = System.nanoTime();
 		byte [] nuevo = hmac(msg, key);
 		long end_1 = System.nanoTime();      
 	    long sum = end_1 - start_1;
 		if (nuevo.length != hash.length) {
+<<<<<<< HEAD
+=======
+			long end = System.nanoTime();      
+	    	System.out.println(" --- Elapsed Time for HMAC verification in nano seconds: " + (sum + (end - start))); 
+>>>>>>> 769cb347a5b2e72fad5bdd6526d98374378b68b9
 			return false;
-			
 		}
 		for (int i = 0; i < nuevo.length ; i++) {
 			if (nuevo[i] != hash[i]){
+<<<<<<< HEAD
 				return false;
 			} 
 		}
 
+=======
+				long end = System.nanoTime();      
+	    		System.out.println(" --- Elapsed Time for HMAC verification in nano seconds: " + (sum + (end - start))); 
+				return false;
+			} 
+		}
+		long end = System.nanoTime();      
+	    System.out.println(" --- Elapsed Time for HMAC verification in nano seconds: " + (sum + (end - start))); 
+>>>>>>> 769cb347a5b2e72fad5bdd6526d98374378b68b9
 		return true;
-		
 	}
     
     public SecretKey csk1(String semilla) throws Exception {
@@ -117,15 +130,12 @@ public class SecurityFunctions {
 	}
 	
 	public byte[] senc (byte[] msg, SecretKey key, IvParameterSpec iv, String id) throws Exception {
-		FileWriter myWriter = new FileWriter("docs/pruebasE.txt",true);
 		Cipher decifrador = Cipher.getInstance(algoritmo_simetrico); 
 		long start = System.nanoTime();
 		decifrador.init(Cipher.ENCRYPT_MODE, key, iv); 
 		byte[] tmp = decifrador.doFinal(msg);
 	    long end = System.nanoTime();      
 	    System.out.println(id + " --- Elapsed Time for SYM encryption in nano seconds: "+ (end-start));   
-		myWriter.write("\n"+id + " --- Elapsed Time for SYM encryption in nano seconds: "+ (end-start)+"\n");
-		myWriter.close();
 		return tmp;
 	}
 	
